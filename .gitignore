@@ -9,6 +9,9 @@
 # User-specific files
 .Ruserdata
 
+# ignore folder of model obhects
+model/
+
 # ignore figures that get created
 *png.R
 
