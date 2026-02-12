@@ -11,7 +11,7 @@
 
 # ignore folder of model obhects
 model/
-
+plots/
 # ignore figures that get created
 *png.R
 
