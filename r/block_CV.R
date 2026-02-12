@@ -10,10 +10,7 @@ b_stn <- bot4use |>
   dplyr::distinct(stn_id, longitude, latitude, mod_reg)
 
 # load water column data (remove 1994 and 1997 which have very few data points)
-wc4use <- readRDS("data/dat4use.rds") |> 
-  dplyr::filter(!(mod_reg == "EBS" & grepl('199401', stn_id)),
-         !(mod_reg == "EBS" & grepl('199701', stn_id)))
-
+wc4use <- readRDS("data/dat4use.rds") 
 wc_stn <- wc4use |> 
   dplyr::distinct(stn_id, longitude, latitude, mod_reg)
 

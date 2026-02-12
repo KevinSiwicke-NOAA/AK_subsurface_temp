@@ -1,18 +1,5 @@
 ## ---------------------------
-##
-## Script name: hycom_functions.R
-##
-## Purpose of script: Functions for downloading HYCOM temperature data
-##
-## Author: Kevin Siwicke
-##
-## Date Created: 2021-03-25
-##
-## Email: kevin.siwicke@noaa.gov
-##
-## ---------------------------
-##
-## Notes: There are multiple versions of HYCOM output, and this will have two
+## Notes: Adapted scripts from the HMMoce package. There are multiple versions of HYCOM output, and this will have two
 ##   scripts for retrieving data, 'get.hycom.U' (GLBu0.08) and 'get.hycom.V' (GLBv0.08).
 ##   The 'v' output has a 'water_temp_bottom' variable, while both 'u' and 'v' have 
 ##   a 'water_temp' variable for modeled temp at specific depths. The most recent 
@@ -369,13 +356,13 @@ get_hycom_temp <- function(date_begin = as.Date("2020-06-01"),
     bot_list <- list()
   } 
   
-  
   for(i in 1:length(days)) {
     
     if(lon_min > 0 & lon_max < 0) {
       
       if(include_wc == TRUE) {
-        wc_w <- get_hycom_V(limits = lim_w, time = days[i])
+        wc_w <- get_hycom_V(limits = lim_w, time = days[i]) |> 
+          dplyr::filter(depth >= z_min, depth <= z_max)
       }
       
       if(include_bot == TRUE) {
@@ -384,7 +371,8 @@ get_hycom_temp <- function(date_begin = as.Date("2020-06-01"),
     }
     
     if(include_wc == TRUE) {
-      wc <- get_hycom_V(limits = lim, time = days[i])
+      wc <- get_hycom_V(limits = lim, time = days[i]) |> 
+        dplyr::filter(depth >= z_min, depth <= z_max)
       if(lat_min == lat_max & lon_min == lon_max) {
         wc <- wc |> 
           dplyr::mutate(delta_lat = abs(lat - lat_min),
@@ -424,20 +412,36 @@ get_hycom_temp <- function(date_begin = as.Date("2020-06-01"),
     if(include_bot == TRUE) {
       bot_list[[i]] <- bot
     } 
-    Sys.sleep(1)
-  }
-  wc <- data.table::rbindlist(wc_list, fill = TRUE)
-  
-  # get bottom depths to add to bottom temperatures
-  bathy <- get_hycom_bathy(lim)
-  if(lon_min > 0 & lon_max < 0) {
-    bathy_w <- get_hycom_bathy(lim_w)
-    bathy <- dplyr::bind_rows(bathy, bathy_w)
+    gc()
   }
   
-  bot <- data.table::rbindlist(bot_list, fill = TRUE) |> 
-    dplyr::left_join(bathy, relationship = "many-to-many") |> # multiple dates will lead to many-to-many
-    dplyr::select(water_temp, lon, lat, depth, date, is.bot)
+  if(include_wc == TRUE) {
+    wc <- data.table::rbindlist(wc_list, fill = TRUE)
+  }
   
-  hycom_data <- dplyr::bind_rows(wc, bot)
+  if(include_bot == TRUE) {
+    # get bottom depths to add to bottom temperatures
+    bathy <- get_hycom_bathy(lim) |> 
+      dplyr::filter(depth >= z_min, depth <= z_max) # note depth of temperature is 10 m above depth of bottom 
+    if(lon_min > 0 & lon_max < 0) {
+      bathy_w <- get_hycom_bathy(lim_w) |> 
+        dplyr::filter(depth >= z_min, depth <= z_max) # note depth of temperature is 10 m above depth of bottom 
+      bathy <- dplyr::bind_rows(bathy, bathy_w)
+    }
+    
+    bot <- data.table::rbindlist(bot_list, fill = TRUE) |> 
+      dplyr::right_join(bathy, relationship = "many-to-many") |> # multiple dates will lead to many-to-many
+      dplyr::select(water_temp, lon, lat, depth, date, is.bot)
+  }
+  
+  if(include_wc == TRUE & include_bot == TRUE) {
+    hycom_data <-  dplyr::bind_rows(wc, bot)
+  }
+  if(include_wc == FALSE & include_bot == TRUE) {
+    hycom_data <-  bot
+  }
+  if(include_wc == TRUE & include_bot == FALSE) {
+    hycom_data <-  wc
+  }
+  return(hycom_data)
 } 

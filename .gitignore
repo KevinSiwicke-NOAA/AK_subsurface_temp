@@ -9,8 +9,8 @@
 # User-specific files
 .Ruserdata
 
-# Example code in package build process
-*-Ex.R
+# ignore figures that get created
+*png.R
 
 # Output files from R CMD build
 /*.tar.gz
