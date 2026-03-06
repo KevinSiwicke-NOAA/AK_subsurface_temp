@@ -216,8 +216,7 @@ rmsd3g <- ggdraw() +
 rmsd_col <- plot_grid(rmsd, rmsd1h, rmsd1g, rmsd2h, rmsd2g, rmsd3h, rmsd3g, ncol = 1)
 
 # RMSD
-bias <- ggdraw() +
-  draw_label("Bias", fontface = 'bold', size = 12)
+bias <- ggdraw() +  draw_label("Bias", fontface = 'bold', size = 12)
 
 # Create text "plot" for Column 1 content
 bias1h <- ggdraw() +
@@ -243,5 +242,5 @@ bias_col <- plot_grid(bias, bias1h, bias1g, bias2h, bias2g, bias3h, bias3g, ncol
 
 plot_grid(cpi_plots, cor_col, rmsd_col, bias_col, rel_widths = c(1, 0.09, 0.09, 0.09), nrow = 1)
 
-ggsave(paste0("results/plots/cpi_indices.png"), bg = "white", 
-       width = 20, height = 20, units = 'cm', dpi = 300)
+ggsave(paste0("results/plots/Fig8_coldpool_metrics.png"), bg = "white", 
+       width = 20, height = 22, units = 'cm', dpi = 300)

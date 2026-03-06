@@ -74,4 +74,4 @@ plots <- plot_grid(bias + theme(legend.position = 'none', strip.background = ele
 legend <- get_plot_component(cor, 'guide-box-top', return_all = TRUE)
 
 plot_grid(legend, plots, ncol = 1, rel_heights = c(0.1, 1))
-ggsave(file = 'results/plots/Fig3_mod_results.png', height = 12, width = 20, units = 'cm', dpi = 300)
+ggsave(file = 'results/plots/Fig3_mod_results.png', height = 12, width = 20, units = 'cm', dpi = 300, bg = 'white')

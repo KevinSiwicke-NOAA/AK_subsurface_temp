@@ -68,6 +68,8 @@ ggplot(year_all %>% add_confint, aes(y = .estimate, x = year, col = mod_reg)) +
   theme_bw() +
   theme(axis.title = element_text(size = 14),
         axis.text = element_text(size = 14),
+        legend.title = element_text(size = 14),
+        legend.text = element_text(size = 14),
         strip.background = element_blank(),
         strip.text = element_text(size = 14),
         panel.grid.major = element_blank(),
