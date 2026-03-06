@@ -126,7 +126,7 @@ ggsave(file = "results/plots/fig9_cod_maps.png", bg = "white", height = 8, width
 ##############
 # LONGITUDE
 ##############
-bs_long_dat <- read_csv(file = glue("data/cod/{bs_num}/{bs_num}-LightLoc.csv")) |> #sometimes there's a _GPE appended
+bs_long_dat <- read_csv(file = glue("data/cod/{bs_num}/{bs_num}-LightLoc.csv")) |> 
   mutate(date_time = as.POSIXct(glue("{Time} {Day}"), "%H:%M:%S %d-%b-%Y", tz="GMT"),
          date_time_geo = as.POSIXct(glue("{GeoTime} {GeoDay}"), "%H:%M:%S %d-%b-%Y", tz="GMT")) |>
   filter(date_time >= bs_rel_date, date_time <= bs_rec_date) |>
@@ -162,7 +162,7 @@ bs_lon_plot <- ggplot() +
 
 bs_lon_plt <- bs_lon_plot + theme(legend.justification.inside = c(.9, .9))
 
-ai_long_dat <- read_csv(file = glue("data/cod/{ai_num}/{ai_num}-LightLoc_GPE.csv")) |> #sometimes there's a _GPE appended
+ai_long_dat <- read_csv(file = glue("data/cod/{ai_num}/{ai_num}-LightLoc.csv")) |> 
   mutate(date_time = as.POSIXct(glue("{Time} {Day}"), "%H:%M:%S %d-%b-%Y", tz="GMT"),
          date_time_geo = as.POSIXct(glue("{GeoTime} {GeoDay}"), "%H:%M:%S %d-%b-%Y", tz="GMT")) |>
   filter(date_time >= ai_rel_date, date_time <= ai_rec_date) |>
