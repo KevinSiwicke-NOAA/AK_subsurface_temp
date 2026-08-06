@@ -10,14 +10,14 @@ pkgs <- c("ggplot2", "dplyr", "sf", "cowplot", "lubridate","coldpool", "tidyterr
 vapply(pkgs, library, logical(1), character.only = TRUE, logical.return = TRUE, quietly = TRUE)
 
 ##################
-# Example small cold pool (2018( versus large cold pool (2012)
+# Example small cold pool (2018) versus large cold pool (2012)
 ##################
 # Load map of EBS for calculating mean bottom temperature in outer shelf strata using Groundfish Assessment Program akgfmaps package
 # Map includes the northern Bering Sea when sampled and in all predictions, but this region is not used in the calculated metrics
 map_layers <- akgfmaps::get_base_layers(select.region = "ebs", set.crs = "EPSG:3338")
 
 gap_12 <- unwrap(coldpool::ebs_bottom_temperature) |> 
-  tidyterra::select(Survey_temp = 3) |> 
+  tidyterra::select(Survey_temp = 31) |> 
   tidyterra::mutate(year = 2012, source = "Survey")
 gap_12_sf <- st_as_sf(as.polygons(gap_12, trunc=FALSE, dissolve=FALSE))
 
@@ -29,11 +29,10 @@ gap_sf <- rbind(gap_12_sf, gap_18_sf)
 
 # Load gridded data (5 km x 5 km) and use determine which cells meet the criteria of <= 2 or <= 0 degrees C
 pred_grid <- readRDS(file = "data/gridded_cpi_data.rds") |> 
-  mutate(year = year(date),
-         h_sub_2 = ifelse(hycom_T > 2, 0, 1),
-         g_sub_2 = ifelse(gam_T > 2, 0, 1),
-         h_sub_0 = ifelse(hycom_T > 0, 0, 1),
-         g_sub_0 = ifelse(gam_T > 0, 0, 1))
+  mutate(year = year(date))
+
+# pred_grid_sebs <- readRDS(file = "data/cropped_gridded_cpi_data.rds") |> 
+#   rename(area_km = area)
 
 s <- ggplot() +
   geom_sf(data = map_layers$bathymetry) +
@@ -43,6 +42,7 @@ s <- ggplot() +
   scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
   geom_sf(data = map_layers$bathymetry) +
   geom_sf(data = map_layers$akland) +
+  geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
   labs(fill = "Temperature", col = '') +
   facet_grid(source~year) +
   geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -68,6 +68,7 @@ h <- ggplot() +
   scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
   geom_sf(data = map_layers$bathymetry) +
   geom_sf(data = map_layers$akland) +
+  geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
   labs(fill = "Temperature", col = '') +
   facet_grid(source~year(date)) +
   geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -93,6 +94,7 @@ g <- ggplot() +
   scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
   geom_sf(data = map_layers$bathymetry) +
   geom_sf(data = map_layers$akland) +
+  geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
   labs(fill = "Temperature", col = '') +
   facet_grid(source~year(date)) +
   geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -124,7 +126,7 @@ legend <- get_plot_component(h, 'guide-box-right', return_all = TRUE)
 
 plot_grid(plots, legend, ncol = 2, rel_widths = c(1, 0.1))
 
-ggsave(paste0("results/plots/Fig7_coldpool_ex.png"), bg = "white", 
+ggsave(paste0("results/plots/Fig8_coldpool_ex.png"), bg = "white", 
        width = 16, height = 24, units = 'cm', dpi = 300)
 
 # Make annual plots of HYCOM prediction and corrected cold pool to include in the supplemental

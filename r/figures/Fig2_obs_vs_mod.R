@@ -49,10 +49,10 @@ for( i in 1:nrow(reg) ) {
   saveRDS(b_mod, paste0('results/model/', reg$mod_reg[i], '_bot_mod.rds'))
   
   dat$pred_diff = wc_mod$fitted.values
-  dat$pred_temp = dat$HYCOM_temp + dat$pred_diff
+  dat$pred_temp = dat$HYCOM_temp - dat$pred_diff
   
   dat_bot$pred_diff = b_mod$fitted.values
-  dat_bot$pred_temp = dat_bot$HYCOM_temp + dat_bot$pred_diff
+  dat_bot$pred_temp = dat_bot$HYCOM_temp - dat_bot$pred_diff
   
   wc_dat <- bind_rows(wc_dat, dat) |> 
     mutate(pred_temp = ifelse(pred_temp < -1.8, -1.8, pred_temp),
@@ -67,15 +67,13 @@ wc_dat |> group_by(mod_reg) |> summarize(mn_temp = mean(obs_temp), sd_temp = sd(
 b_dat |> group_by(mod_reg) |> summarize(mn_temp = mean(obs_temp), sd_temp = sd(obs_temp))
 
 # Make plots of HYCOM predicted vs. observations 
-wc <- ggplot(wc_dat, aes(HYCOM_temp, obs_temp)) + 
+wc <- ggplot(wc_dat, aes(obs_temp, HYCOM_temp)) + 
   geom_hex(binwidth = c(0.25, 0.25)) +
   scale_fill_gradient(low = "lightblue", high = "#002B7B") +
   labs(fill = NULL) +
   new_scale_fill() +
-  geom_hex(aes(pred_temp, obs_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
   geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
-  geom_smooth(col = "#002B7B", method = 'lm', linewidth = 1, se = FALSE) +
-  geom_smooth(aes(pred_temp, obs_temp), method = 'lm',  col= "#A12223", linewidth = 1, se = FALSE) +
   scale_fill_gradient(low = "lightpink", high = "firebrick") +
   theme_bw() +
   facet_grid(area ~ mod_reg) +
@@ -90,19 +88,15 @@ wc <- ggplot(wc_dat, aes(HYCOM_temp, obs_temp)) +
         legend.text = element_text(size = 14),
         strip.text.y = element_text(size = 14),
         strip.text.x = element_text(size = 14),
-        axis.line = element_line(linewidth = .6),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        axis.line = element_line(linewidth = .6))
 
-b <- ggplot(b_dat, aes(HYCOM_temp, obs_temp)) + 
+b <- ggplot(b_dat, aes(obs_temp, HYCOM_temp)) + 
   geom_hex(binwidth = c(0.25, 0.25)) +
   scale_fill_gradient(low = "lightblue", high = "#002B7B") +
   labs(fill = NULL) +
   new_scale_fill() +
-  geom_hex(aes(pred_temp, obs_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
   geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
-  geom_smooth(col = "#002B7B", method = 'lm', linewidth = 1, se = FALSE) +
-  geom_smooth(data = b_dat, aes(pred_temp, obs_temp), method = 'lm',  col= "#A12223", linewidth = 1, se = FALSE) +
   scale_fill_gradient(low = "lightpink", high = "firebrick") +
   theme_bw() +
   facet_grid(area ~ mod_reg) +
@@ -115,28 +109,173 @@ b <- ggplot(b_dat, aes(HYCOM_temp, obs_temp)) +
         strip.background.x = element_blank(),
         strip.background.y = element_blank(),
         strip.text.y = element_text(size = 14),
-        strip.text.x = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        strip.text.x = element_blank())
 
 plot_grid(plot_grid(wc, b, labels=c("", ""), ncol = 1, align = 'v'), scale = 0.95) + #perhaps reduce this for a bit more space
-  draw_label("Model predicted temperature (°C)", x=0.5, y=  0, vjust=-0.5, angle= 0) +
-  draw_label("Observed temperature (°C)", x=  0, y=0.5, vjust= 1.5, angle=90) 
+  draw_label("Observed temperature (°C)", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+  draw_label("Model predicted temperature (°C)", x=  0, y=0.5, vjust= 1.5, angle=90) 
 
 ggsave('results/plots/Fig2_obs_v_mod.png', width = 24, height = 16, units = 'cm', bg = 'white',  dpi = 300)
 
+# Just to see mean values by region
+wc_dat |> group_by(mod_reg) |> summarize(mn_temp = mean(obs_temp), sd_temp = sd(obs_temp))
+b_dat |> group_by(mod_reg) |> summarize(mn_temp = mean(obs_temp), sd_temp = sd(obs_temp))
+
+# Get each by year to include in supplementary
+# AI
+ggplot(wc_dat |> filter(mod_reg == 'AI'), aes(obs_temp, HYCOM_temp)) + 
+  geom_hex(binwidth = c(0.25, 0.25)) +
+  scale_fill_gradient(low = "lightblue", high = "#002B7B") +
+  labs(fill = NULL, x = 'Observed temperature (°C)', y = 'Model predicted temperature (°C)') +
+  new_scale_fill() +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
+  scale_fill_gradient(low = "lightpink", high = "firebrick") +
+  theme_bw() +
+  facet_wrap(~ Year) +
+  scale_x_continuous(breaks = c(0, 5, 10), limits = c(0, 12.5)) +
+  scale_y_continuous(breaks = c(0, 5, 10), limits = c(0, 12.5)) +
+  ggtitle('AI water column') +
+  theme(legend.position = "none",
+        strip.background.x = element_blank(),
+        strip.background.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        strip.text.x = element_text(size = 12))
+
+ggsave('results/plots/ai_wc_by_yr.png', width = 20, height = 20, units = 'cm', bg = 'white',  dpi = 300)
+
+ggplot(b_dat|> filter(mod_reg == 'AI'), aes(obs_temp, HYCOM_temp)) + 
+  geom_hex(binwidth = c(0.25, 0.25)) +
+  scale_fill_gradient(low = "lightblue", high = "#002B7B") +
+  labs(fill = NULL, x = 'Observed temperature (°C)', y = 'Model predicted temperature (°C)') +
+  new_scale_fill() +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
+  scale_fill_gradient(low = "lightpink", high = "firebrick") +
+  theme_bw() +
+  facet_wrap(~ Year) +
+  scale_x_continuous(breaks = c(0, 5, 10), limits = c(0, 12.5)) +
+  scale_y_continuous(breaks = c(0, 5, 10), limits = c(0, 12.5)) +
+  ggtitle('AI bottom') +
+  theme(legend.position = "none",
+        strip.background.x = element_blank(),
+        strip.background.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        strip.text.x = element_text(size = 12))
+
+ggsave('results/plots/ai_b_by_yr.png', width = 20, height = 20, units = 'cm', bg = 'white',  dpi = 300)
+
+# EBS
+ggplot(wc_dat |> filter(mod_reg == 'EBS'), aes(obs_temp, HYCOM_temp)) + 
+  geom_hex(binwidth = c(0.25, 0.25)) +
+  scale_fill_gradient(low = "lightblue", high = "#002B7B") +
+  labs(fill = NULL, x = 'Observed temperature (°C)', y = 'Model predicted temperature (°C)') +
+  new_scale_fill() +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
+  scale_fill_gradient(low = "lightpink", high = "firebrick") +
+  theme_bw() +
+  facet_wrap(~ Year) +
+  scale_x_continuous(breaks = c(0, 5, 10), limits = c(-2, 14.9), expand = c(0, 0)) +
+  scale_y_continuous(breaks = c(0, 5, 10), limits = c(-2, 14.9), expand = c(0, 0)) +
+  ggtitle('EBS water column') +
+  theme(legend.position = "none",
+        strip.background.x = element_blank(),
+        strip.background.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        strip.text.x = element_text(size = 12))
+
+ggsave('results/plots/ebs_wc_by_yr.png', width = 20, height = 20, units = 'cm', bg = 'white',  dpi = 300)
+
+ggplot(b_dat|> filter(mod_reg == 'EBS'), aes(obs_temp, HYCOM_temp)) + 
+  geom_hex(binwidth = c(0.25, 0.25)) +
+  scale_fill_gradient(low = "lightblue", high = "#002B7B") +
+  labs(fill = NULL, x = 'Observed temperature (°C)', y = 'Model predicted temperature (°C)') +
+  new_scale_fill() +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
+  scale_fill_gradient(low = "lightpink", high = "firebrick") +
+  theme_bw() +
+  facet_wrap(~ Year) +
+  scale_x_continuous(breaks = c(0, 5, 10), limits = c(-2.2, 15.1), expand = c(0, 0)) +
+  scale_y_continuous(breaks = c(0, 5, 10), limits = c(-2.2, 14.9), expand = c(0, 0)) +
+  ggtitle('EBS bottom') +
+  theme(legend.position = "none",
+        strip.background.x = element_blank(),
+        strip.background.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        strip.text.x = element_text(size = 12))
+
+ggsave('results/plots/ebs_b_by_yr.png', width = 20, height = 20, units = 'cm', bg = 'white',  dpi = 300)
+
+# GOA 
+ggplot(wc_dat |> filter(mod_reg == 'GOA'), aes(obs_temp, HYCOM_temp)) + 
+  geom_hex(binwidth = c(0.25, 0.25)) +
+  scale_fill_gradient(low = "lightblue", high = "#002B7B") +
+  labs(fill = NULL, x = 'Observed temperature (°C)', y = 'Model predicted temperature (°C)') +
+  new_scale_fill() +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
+  scale_fill_gradient(low = "lightpink", high = "firebrick") +
+  theme_bw() +
+  facet_wrap(~ Year) +
+  scale_x_continuous(breaks = c(5, 10, 15), limits = c(1, 16)) +
+  scale_y_continuous(breaks = c(5, 10, 15), limits = c(1, 16)) +
+  ggtitle('GOA water column') +
+  theme(legend.position = "none",
+        strip.background.x = element_blank(),
+        strip.background.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        strip.text.x = element_text(size = 12))
+
+ggsave('results/plots/goa_wc_by_yr.png', width = 20, height = 20, units = 'cm', bg = 'white',  dpi = 300)
+
+ggplot(b_dat|> filter(mod_reg == 'GOA'), aes(obs_temp, HYCOM_temp)) + 
+  geom_hex(binwidth = c(0.25, 0.25)) +
+  scale_fill_gradient(low = "lightblue", high = "#002B7B") +
+  labs(fill = NULL, x = 'Observed temperature (°C)', y = 'Model predicted temperature (°C)') +
+  new_scale_fill() +
+  geom_hex(aes(obs_temp, pred_temp), binwidth = c(0.25, 0.25), alpha = 0.5) +
+  geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
+  scale_fill_gradient(low = "lightpink", high = "firebrick") +
+  theme_bw() +
+  facet_wrap(~ Year) +
+  scale_x_continuous(breaks = c(5, 10, 15), limits = c(1, 16)) +
+  scale_y_continuous(breaks = c(5, 10, 15), limits = c(1, 16)) +
+  ggtitle('GOA bottom') +
+  theme(legend.position = "none",
+        strip.background.x = element_blank(),
+        strip.background.y = element_blank(),
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        strip.text.x = element_text(size = 12))
+
+ggsave('results/plots/goa_b_by_yr.png', width = 20, height = 20, units = 'cm', bg = 'white',  dpi = 300)
+
 # For presenting, and just to see how HYCOM is alone without the BCM on top.
-wc <- ggplot(wc_dat, aes(HYCOM_temp, obs_temp)) +
+# Make plots of HYCOM predicted vs. observations 
+wc <- ggplot(wc_dat, aes(obs_temp, HYCOM_temp)) + 
   geom_hex(binwidth = c(0.25, 0.25)) +
   scale_fill_gradient(low = "lightblue", high = "#002B7B") +
   labs(fill = NULL) +
+  new_scale_fill() +
   geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
-  geom_smooth(col = '#002B7B', method = 'lm', linewidth = 1, se = FALSE) +
   theme_bw() +
   facet_grid(area ~ mod_reg) +
   scale_x_continuous(breaks = c(0, 5, 10, 15), limits = c(-3.1, 17.5)) +
   scale_y_continuous(breaks = c(0, 5, 10, 15), limits = c(-3.1, 17.5)) +
-  theme(legend.position = 'none',
+  theme(legend.position = "none",
         strip.background.x = element_blank(),
         strip.background.y = element_blank(),
         axis.text.y = element_text(size = 14),
@@ -145,33 +284,29 @@ wc <- ggplot(wc_dat, aes(HYCOM_temp, obs_temp)) +
         legend.text = element_text(size = 14),
         strip.text.y = element_text(size = 14),
         strip.text.x = element_text(size = 14),
-        axis.line = element_line(linewidth = .6),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        axis.line = element_line(linewidth = .6))
 
-b <- ggplot(b_dat, aes(HYCOM_temp, obs_temp)) +
+b <- ggplot(b_dat, aes(obs_temp, HYCOM_temp)) + 
   geom_hex(binwidth = c(0.25, 0.25)) +
   scale_fill_gradient(low = "lightblue", high = "#002B7B") +
   labs(fill = NULL) +
+  new_scale_fill() +
   geom_abline(aes(slope=1, intercept=0), lty=2, linewidth = 1) +
-  geom_smooth(col = '#002B7B', method = 'lm', linewidth = 1, se = FALSE) +
   theme_bw() +
   facet_grid(area ~ mod_reg) +
   scale_x_continuous(breaks = c(0, 5, 10, 15), limits = c(-3.1, 17.5)) +
   scale_y_continuous(breaks = c(0, 5, 10, 15), limits = c(-3.1, 17.5)) +
-  theme(legend.position = 'none',
+  theme(legend.position = "none",
         axis.text = element_text(size = 14),
         axis.title = element_blank(),
         axis.line = element_line(linewidth = .6),
         strip.background.x = element_blank(),
         strip.background.y = element_blank(),
         strip.text.y = element_text(size = 14),
-        strip.text.x = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        strip.text.x = element_blank())
 
-plot_grid(plot_grid(wc, b, labels=c('', ''), ncol = 1, align = 'v'), scale = 0.95) + #perhaps reduce this for a bit more space
-  draw_label('Model predicted temperature (°C)', x=0.5, y=  0, vjust=-0.5, angle= 0) +
-  draw_label('Observed temperature (°C)', x=  0, y=0.5, vjust= 1.5, angle=90)
-# 
+plot_grid(plot_grid(wc, b, labels=c("", ""), ncol = 1, align = 'v'), scale = 0.95) + #perhaps reduce this for a bit more space
+  draw_label("Observed temperature (°C)", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+  draw_label("Model predicted temperature (°C)", x=  0, y=0.5, vjust= 1.5, angle=90) 
+
 # ggsave('results/plots/obs_v_mod_figure_hycom_only.png', width = 24, height = 16, units = 'cm', bg = 'white',  dpi = 300)

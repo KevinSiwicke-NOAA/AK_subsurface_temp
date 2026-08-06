@@ -29,8 +29,8 @@ for( i in 1:nrow(reg) ) {
   
   dat = b_dat_reg[[i]]
   for( j in 1:10 ) {
-    train_data <- dat %>% dplyr::filter(!grp == j)
-    test_data <- dat %>% dplyr::filter(grp == j)
+    train_data <- dat |> dplyr::filter(!grp == j)
+    test_data <- dat |> dplyr::filter(grp == j)
     
     k_yr = length(unique(train_data$Year))
     mod_ls <- lapply(formulas, function(x) bam(x, data = train_data, method = 'fREML', 
@@ -48,59 +48,51 @@ for( i in 1:nrow(reg) ) {
         mod <- mod_ls[[k]]
         dev_expl <- ((mod$null.deviance - mod$deviance)/mod$null.deviance) * 100
         test_data$pred_diff = predict(mod, newdata = test_data)
-        test_data$pred_temp = test_data$HYCOM_temp + test_data$pred_diff
+        test_data$pred_temp = test_data$HYCOM_temp - test_data$pred_diff
       }   
       
-      info_mod_ls[[k + 1]] <- test_data %>%
-        mutate(mod_num = factor(k)) %>% 
-        group_by(mod_reg, grp, mod_num) %>% 
-        summarize(cor = cor(obs_temp, pred_temp),
-                  bias = bias(obs_temp, pred_temp),
-                  per_bias = percent_bias(obs_temp + 3, pred_temp + 3),
+      info_mod_ls[[k + 1]] <- test_data |>
+        mutate(mod_num = factor(k)) |> 
+        group_by(mod_reg, grp, mod_num) |> 
+        summarise(cor = cor(obs_temp, pred_temp),
+                  bias = bias(pred_temp, obs_temp), # These are intentionally ordered to yield bias = model_prediction - observation, in line with how bias is treated in climate research
                   rmse = rmse(obs_temp, pred_temp),
-                  mae = mae(obs_temp, pred_temp),
-                  mape = mape(obs_temp + 3, pred_temp + 3)) %>% 
+                  mae = mae(obs_temp, pred_temp)) |> 
         mutate(dev_expl = dev_expl)
       
-      depth_info_mod_ls[[k + 1]] <- test_data %>%
-        mutate(mod_num = factor(k)) %>% 
-        group_by(mod_reg, grp, mod_num, Depth_fct) %>% 
-        summarize(cor = cor(obs_temp, pred_temp),
-                  bias = bias(obs_temp, pred_temp),
-                  per_bias = percent_bias(obs_temp + 3, pred_temp + 3),
+      depth_info_mod_ls[[k + 1]] <- test_data |>
+        mutate(mod_num = factor(k)) |> 
+        group_by(mod_reg, grp, mod_num, Depth_fct) |> 
+        summarise(cor = cor(obs_temp, pred_temp),
+                  bias = bias(pred_temp, obs_temp), # These are intentionally ordered to yield bias = model_prediction - observation, in line with how bias is treated in climate research
                   rmse = rmse(obs_temp, pred_temp),
-                  mae = mae(obs_temp, pred_temp),
-                  mape = mape(obs_temp + 3, pred_temp + 3)) 
+                  mae = mae(obs_temp, pred_temp))
     }    
     info_grp_ls[[j]] <- as.data.frame(dplyr::bind_rows(info_mod_ls))
     depth_info_grp_ls[[j]] <- as.data.frame(dplyr::bind_rows(depth_info_mod_ls)) 
   }
   
   info_grp_df <- as.data.frame(dplyr::bind_rows(info_grp_ls))
-  info_reg_ls[[i]] <- info_grp_df %>%
-    group_by(mod_reg, mod_num) %>% 
+  info_reg_ls[[i]] <- info_grp_df |>
+    group_by(mod_reg, mod_num) |> 
     summarize(cor_mn = mean(cor, na.rm = T), cor_sd = sd(cor, na.rm = T),
               bias_mn = mean(bias), bias_sd = sd(bias),
-              per_bias_mn = mean(per_bias), per_bias_sd = sd(per_bias),
               rmse_mn = mean(rmse), rmse_sd = sd(rmse),
               mae_mn = mean(mae), mae_sd = sd(mae),
-              mape_mn = mean(mape), mape_sd = sd(mape),
               dev_expl_mn = mean(dev_expl), dev_expl_sd = sd(dev_expl))
   
   depth_info_grp_df <- as.data.frame(dplyr::bind_rows(depth_info_grp_ls)) 
-  depth_info_reg_ls[[i]] <- depth_info_grp_df  %>% 
-    group_by(mod_reg, mod_num, Depth_fct) %>% 
+  depth_info_reg_ls[[i]] <- depth_info_grp_df  |> 
+    group_by(mod_reg, mod_num, Depth_fct) |> 
     summarize(cor_mn = mean(cor, na.rm = T), cor_sd = sd(cor, na.rm = T), 
               bias_mn = mean(bias), bias_sd = sd(bias),
-              per_bias_mn = mean(per_bias), per_bias_sd = sd(per_bias),
               rmse_mn = mean(rmse), rmse_sd = sd(rmse),
-              mae_mn = mean(mae), mae_sd = sd(mae),
-              mape_mn = mean(mape), mape_sd = sd(mape))
+              mae_mn = mean(mae), mae_sd = sd(mae))
 }
 
-bot_info_reg_df <- as.data.frame(dplyr::bind_rows(info_reg_ls)) %>% 
+bot_info_reg_df <- as.data.frame(dplyr::bind_rows(info_reg_ls)) |> 
   write_csv(file = "results/bot_info_region_block.csv")
-bot_depth_info_reg_df <- as.data.frame(dplyr::bind_rows(depth_info_reg_ls)) %>% 
+bot_depth_info_reg_df <- as.data.frame(dplyr::bind_rows(depth_info_reg_ls)) |> 
   write_csv(file = "results/bot_depth_info_region_block.csv")
 
 saveRDS(bot_info_reg_df, "results/bot_info_reg_df_block.rds")
@@ -128,8 +120,8 @@ for( i in 1:nrow(reg) ) {
   
   dat = wc_dat_reg[[i]]
   for( j in 1:10 ) {
-    train_data <- dat %>% filter(!grp == j)
-    test_data <- dat %>% filter(grp == j)
+    train_data <- dat |> filter(!grp == j)
+    test_data <- dat |> filter(grp == j)
     
     k_yr = length(unique(train_data$Year))
     mod_ls <- lapply(formulas, function(x) bam(x, data = train_data, method = 'fREML', 
@@ -147,59 +139,51 @@ for( i in 1:nrow(reg) ) {
         mod <- mod_ls[[k]]
         dev_expl <- ((mod$null.deviance - mod$deviance)/mod$null.deviance) * 100
         test_data$pred_diff = predict(mod, newdata = test_data)
-        test_data$pred_temp = test_data$HYCOM_temp + test_data$pred_diff
+        test_data$pred_temp = test_data$HYCOM_temp - test_data$pred_diff
       }   
       
-      info_mod_ls[[k + 1]] <- test_data %>%
-        mutate(mod_num = factor(k)) %>% 
-        group_by(mod_reg, grp, mod_num) %>% 
+      info_mod_ls[[k + 1]] <- test_data |>
+        mutate(mod_num = factor(k)) |> 
+        group_by(mod_reg, grp, mod_num) |> 
         summarize(cor = cor(obs_temp, pred_temp),
-                  bias = bias(obs_temp, pred_temp),
-                  per_bias = percent_bias(obs_temp + 3, pred_temp + 3),
+                  bias = bias(pred_temp, obs_temp), # These are intentionally ordered to yield bias = model_prediction - observation, in line with how bias is treated in climate research
                   rmse = rmse(obs_temp, pred_temp),
-                  mae = mae(obs_temp, pred_temp),
-                  mape = mape(obs_temp + 3, pred_temp + 3)) %>% 
+                  mae = mae(obs_temp, pred_temp)) |> 
         mutate(dev_expl = dev_expl)
       
-      depth_info_mod_ls[[k + 1]] <- test_data %>%
-        mutate(mod_num = factor(k)) %>% 
-        group_by(mod_reg, grp, mod_num, Depth_fct) %>% 
+      depth_info_mod_ls[[k + 1]] <- test_data |>
+        mutate(mod_num = factor(k)) |> 
+        group_by(mod_reg, grp, mod_num, Depth_fct) |> 
         summarize(cor = cor(obs_temp, pred_temp),
-                  bias = bias(obs_temp, pred_temp),
-                  per_bias = percent_bias(obs_temp + 3, pred_temp + 3),
+                  bias = bias(pred_temp, obs_temp), # These are intentionally ordered to yield bias = model_prediction - observation, in line with how bias is treated in climate research
                   rmse = rmse(obs_temp, pred_temp),
-                  mae = mae(obs_temp, pred_temp),
-                  mape = mape(obs_temp + 3, pred_temp + 3)) 
+                  mae = mae(obs_temp, pred_temp))
     }    
     info_grp_ls[[j]] <- as.data.frame(dplyr::bind_rows(info_mod_ls))
     depth_info_grp_ls[[j]] <- as.data.frame(dplyr::bind_rows(depth_info_mod_ls)) 
   }
   
   info_grp_df <- as.data.frame(dplyr::bind_rows(info_grp_ls))
-  info_reg_ls[[i]] <- info_grp_df %>%
-    group_by(mod_reg, mod_num) %>% 
+  info_reg_ls[[i]] <- info_grp_df |>
+    group_by(mod_reg, mod_num) |> 
     summarize(cor_mn = mean(cor, na.rm = T), cor_sd = sd(cor, na.rm = T),
-              bias_mn = mean(bias), bias_sd = sd(bias),
-              per_bias_mn = mean(per_bias), per_bias_sd = sd(per_bias),
+              bias_mn = mean(bias), bias_sd =  sd(bias),
               rmse_mn = mean(rmse), rmse_sd = sd(rmse),
               mae_mn = mean(mae), mae_sd = sd(mae),
-              mape_mn = mean(mape), mape_sd = sd(mape),
               dev_expl_mn = mean(dev_expl), dev_expl_sd = sd(dev_expl))
   
   depth_info_grp_df <- as.data.frame(dplyr::bind_rows(depth_info_grp_ls)) 
-  depth_info_reg_ls[[i]] <- depth_info_grp_df  %>% 
-    group_by(mod_reg, mod_num, Depth_fct) %>% 
+  depth_info_reg_ls[[i]] <- depth_info_grp_df |> 
+    group_by(mod_reg, mod_num, Depth_fct) |> 
     summarize(cor_mn = mean(cor, na.rm = T), cor_sd = sd(cor, na.rm = T), 
               bias_mn = mean(bias), bias_sd = sd(bias),
-              per_bias_mn = mean(per_bias), per_bias_sd = sd(per_bias),
               rmse_mn = mean(rmse), rmse_sd = sd(rmse),
-              mae_mn = mean(mae), mae_sd = sd(mae),
-              mape_mn = mean(mape), mape_sd = sd(mape))
+              mae_mn = mean(mae), mae_sd = sd(mae))
 }
 
-wc_info_reg_df <- as.data.frame(dplyr::bind_rows(info_reg_ls)) %>% 
+wc_info_reg_df <- as.data.frame(dplyr::bind_rows(info_reg_ls)) |> 
   write_csv(file = "results/wc_info_region_block.csv")
-wc_depth_info_reg_df <- as.data.frame(dplyr::bind_rows(depth_info_reg_ls)) %>% 
+wc_depth_info_reg_df <- as.data.frame(dplyr::bind_rows(depth_info_reg_ls)) |> 
   write_csv(file = "results/wc_depth_info_region_block.csv")
 
 saveRDS(wc_info_reg_df, "results/wc_info_reg_df_block.rds")

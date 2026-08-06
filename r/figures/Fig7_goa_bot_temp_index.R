@@ -23,7 +23,7 @@ mn <- ggplot(daily_mean) +
                      expand = c(0,0)) +
   theme_bw() +
   guides(col = guide_legend(nrow = 1)) +
-  theme(panel.grid = element_blank(), legend.position = 'inside',
+  theme(legend.position = 'inside',
         legend.position.inside = c(0.75, 0.1), legend.title=element_blank(),
         axis.title.x=element_blank(), axis.text.x=element_blank(), strip.background = element_blank())
 
@@ -39,12 +39,12 @@ anom <- ggplot(daily_mean_anom) +
                      labels = c("1/1/95", "1/1/00", "1/1/05", "1/1/10", "1/1/15", "1/1/20"),
                      expand = c(0,0)) +
   theme_bw() +
-  theme(panel.grid = element_blank(), legend.position = "none",
+  theme(legend.position = "none",
         strip.background = element_blank(), strip.text.x = element_blank())
 
 plot_grid(mn, anom, align = 'v', ncol = 1)
 
-ggsave(paste0("results/plots/FigS15_goa_bot_index.png"), bg = "white", width = 28, height = 18, units = 'cm', dpi = 300)
+ggsave(paste0("results/plots/FigS23_goa_bot_index.png"), bg = "white", width = 28, height = 18, units = 'cm', dpi = 300)
 
 # Look at a few years with highlighting of time with and without data
 mn <- ggplot(daily_mean |> filter(year(date) > 2011, year(date) < 2018)) + 
@@ -92,7 +92,7 @@ plot_grid(mn + theme(axis.title.x=element_blank(), axis.text.x=element_blank(), 
           anom + theme(strip.background = element_blank(), strip.text.x = element_blank()),
           align = 'v', ncol = 1)
 
-ggsave("results/plots/Fig6_goa_bot_index_ex.png", bg = "white", width = 16, height = 16, units = 'cm', dpi = 300)
+ggsave("results/plots/Fig7_goa_bot_index_ex.png", bg = "white", width = 16, height = 16, units = 'cm', dpi = 300)
 
 # Get sumamry data
 ann_summ <- daily_mean |> 

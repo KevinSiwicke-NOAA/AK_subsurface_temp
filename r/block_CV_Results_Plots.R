@@ -76,17 +76,6 @@ bias <- ggplot(info_reg) +
 bias
 # ggsave(file = "results/plots/cv_select/bias.png", height = 20, width = 16, units = 'cm', dpi = 600)
 
-ggplot(info_reg) +
-  geom_point(aes(mod_num, per_bias_mn, col = mod_reg),
-             position = position_dodge(width = 0.5)) +
-  geom_errorbar(aes(mod_num, ymin = per_bias_mn - per_bias_sd,
-                    ymax = per_bias_mn + per_bias_sd, col = mod_reg), width = 0.5,
-                position = position_dodge(width = 0.5)) +
-  scale_color_manual(values = c("#0072B2", "#D55E00", "#009E73")) +
-  facet_wrap(~area, ncol = 1) +
-  labs(x = "Model Number", y = "Percent Bias", col = 'Region') +
-  theme_bw()
-
 mae <- ggplot(info_reg) +
   geom_point(aes(mod_num, mae_mn, col = mod_reg),
              position = position_dodge(width = 0.5)) +
@@ -110,7 +99,7 @@ plots <- plot_grid(bias + theme(legend.position = "none", strip.background = ele
 legend <- get_plot_component(mae, 'guide-box-right', return_all = TRUE)
 
 plot_grid(plots, legend, ncol = 2, rel_widths = c(1, 0.1))
-ggsave(file = "results/plots/mod_results_figure.png", height = 13, width = 20, units = 'cm', dpi = 600)
+# ggsave(file = "results/plots/mod_results_figure.png", height = 13, width = 20, units = 'cm', dpi = 600)
 
 ggplot(info_reg) +
   geom_point(aes(mod_num, rmse_mn, col = mod_reg),
@@ -123,18 +112,7 @@ ggplot(info_reg) +
   labs(x = "Model Number", y = "Root mean square error") +
   theme_bw()
 
-ggsave(file = "results/plots/cv_select/rmse.png", height = 20, width = 16, units = 'cm', dpi = 600)
-
-ggplot(info_reg) +
-  geom_point(aes(mod_num, mape_mn, col = mod_reg),
-             position = position_dodge(width = 0.5)) +
-  geom_errorbar(aes(mod_num, ymin = mape_mn - mape_sd,
-                    ymax = mape_mn + mape_sd, col = mod_reg), width = 0.5,
-                position = position_dodge(width = 0.5)) +
-  scale_color_manual(values = c("#0072B2", "#D55E00", "#009E73")) +
-  facet_wrap(~area, ncol = 1) +
-  labs(x = "Model Number", y = "Mean absolute percent error") +
-  theme_bw()
+# ggsave(file = "results/plots/cv_select/rmse.png", height = 20, width = 16, units = 'cm', dpi = 600)
 
 # Now results by depth bins
 ggplot(depth_info_reg|> filter(mod_num %in% c(0, 1, 2, 3, 4)), aes(cor_mn, Depth_fct, col = mod_num)) +
@@ -209,18 +187,6 @@ ggplot(depth_info_reg|> filter(mod_num %in% c(0, 1, 2, 3, 4)), aes(rmse_mn, Dept
 
 ggsave(file = "results/plots/cv_select/dep_rmse_0to4.png", height = 20, width = 16, units = 'cm', dpi = 600)
 
-ggplot(depth_info_reg|> filter(mod_num %in% c(0, 1, 2, 3, 4)), aes(mape_mn, Depth_fct, col = mod_num)) + 
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = mape_mn - mape_sd,
-                     xmax = mape_mn + mape_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("MAPE") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() + 
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
 ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(cor_mn, Depth_fct, col = mod_num)) +
   geom_vline(aes(xintercept = 0), lty = 2, col = "grey30") +
   geom_vline(aes(xintercept = 1), lty = 2, col = "grey30") +
@@ -252,19 +218,6 @@ ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(bias_mn, Depth_f
 
 ggsave(file = "results/plots/cv_select/dep_bias_5to8.png", height = 20, width = 16, units = 'cm', dpi = 600)
 
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(per_bias_mn, Depth_fct, col = mod_num)) +
-  geom_vline(aes(xintercept = 0), lty = 2, col = "grey30") +
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = per_bias_mn - per_bias_sd,
-                     xmax = per_bias_mn + per_bias_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("Percent bias") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
 ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(mae_mn, Depth_fct, col = mod_num)) + 
   geom_point(position = position_dodge(width = 0.75)) +
   facet_grid2(area~mod_reg, scales = "free_y") + 
@@ -292,99 +245,3 @@ ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(rmse_mn, Depth_f
   theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
 
 ggsave(file = "results/plots/cv_select/dep_rmse_5to8.png", height = 20, width = 16, units = 'cm', dpi = 600)
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(mape_mn, Depth_fct, col = mod_num)) + 
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = mape_mn - mape_sd,
-                     xmax = mape_mn + mape_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("MAPE") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() + 
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(cor_mn, Depth_fct, col = mod_num)) +
-  geom_vline(aes(xintercept = 0), lty = 2, col = "grey30") +
-  geom_vline(aes(xintercept = 1), lty = 2, col = "grey30") +
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = cor_mn - cor_sd,
-                     xmax = cor_mn + cor_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("Pearson's correlation") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
-ggsave(file = "results/plots/cv_select/dep_corr_5to8.png", height = 20, width = 16, units = 'cm', dpi = 600)
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(bias_mn, Depth_fct, col = mod_num)) +
-  geom_vline(aes(xintercept = 0), lty = 2, col = "grey30") +
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = bias_mn - bias_sd,
-                     xmax = bias_mn + bias_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("Bias") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
-ggsave(file = "results/plots/cv_select/dep_bias_5to8.png", height = 20, width = 16, units = 'cm', dpi = 600)
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(per_bias_mn, Depth_fct, col = mod_num)) +
-  geom_vline(aes(xintercept = 0), lty = 2, col = "grey30") +
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = per_bias_mn - per_bias_sd,
-                     xmax = per_bias_mn + per_bias_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("Percent bias") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() +
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(mae_mn, Depth_fct, col = mod_num)) + 
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = mae_mn - mae_sd,
-                     xmax = mae_mn + mae_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("MAE") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() + 
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
-ggsave(file = "results/plots/cv_select/dep_mae_5to8.png", height = 20, width = 16, units = 'cm', dpi = 600)
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(rmse_mn, Depth_fct, col = mod_num)) + 
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = rmse_mn - rmse_sd,
-                     xmax = rmse_mn + rmse_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("RMSE") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() + 
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())
-
-ggsave(file = "results/plots/cv_select/dep_rmse_5to8.png", height = 20, width = 16, units = 'cm', dpi = 600)
-
-ggplot(depth_info_reg|> filter(mod_num %in% c(5, 6, 7, 8)), aes(mape_mn, Depth_fct, col = mod_num)) + 
-  geom_point(position = position_dodge(width = 0.75)) +
-  facet_grid2(area~mod_reg, scales = "free_y") + 
-  geom_errorbar(aes(y = Depth_fct, xmin = mape_mn - mape_sd,
-                     xmax = mape_mn + mape_sd, col = mod_num), width = 0.25,
-                 position = position_dodge(width = 0.75)) +
-  xlab("MAPE") +
-  ylab("Depth level (m)") +
-  scale_y_discrete(limits=rev) +
-  theme_bw() + 
-  theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank())

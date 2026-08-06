@@ -92,11 +92,14 @@ ebs_b_sf <- st_as_sf(sm_ebs_b_sh |> na.omit(), coords = c('longitude', 'latitude
 ggplot() +
   geom_sf(data = EBS$bathymetry) +
   geom_point(data = ebs_b_sf, aes(x, y, col = .estimate), size = 2) +
-  scale_color_gradient2(low = 'steelblue', high = 'firebrick2') +
+  scale_color_gradient2(low = 'steelblue', mid = "grey90", high = 'firebrick2') +
   geom_sf(data = EBS$bathymetry) +
   geom_sf(data = EBS$akland) +
   labs(col = 'Partial effect') +
   geom_sf(data = EBS$graticule, color = 'grey70', alpha = 0.5) +
+  annotate("text", x = -810000, y = 1400000, label = "50 m", color = "black", size = 5) +
+  annotate("text", x = -1070000, y = 1500000, label = "100 m", color = "black", size = 5) +
+  annotate("text", x = -1250000, y = 1360000, label = "200 m", color = "black", size = 5) +
   coord_sf(xlim = EBS$plot.boundary$x,
            ylim = EBS$plot.boundary$y) +
   scale_x_continuous(name = 'Longitude', 
@@ -110,7 +113,7 @@ ggplot() +
                          height = unit(2, 'cm'), width = unit(2, 'cm')) +
   theme_bw()
 
-ggsave(file = 'results/plots/Fig5_ebs_map_bot.png', height = 20, width = 20, units = 'cm')
+ggsave(file = 'results/plots/Fig5_ebs_map_bot.png', height = 19, width = 20, units = 'cm')
 
 # Effect by region and depth
 ebs_b_hy_sm <- smooth_estimates(mod_b_ebs,  dist = 0.1,
@@ -159,7 +162,8 @@ all_hy_sm <- bind_rows(ebs_b_hy_sm, goa_b_hy_sm, ai_b_hy_sm, ebs_wc_hy_sm, goa_w
 
 ggplot(data = all_hy_sm, aes(HYCOM_temp, Depth, z = new_est)) +
   geom_contour_filled(alpha = 0.8) +
-  scale_fill_manual(values = c(colorRampPalette(c('steelblue', '#E7EFF5'))(8), colorRampPalette(c('#F9B8B8', 'firebrick2'))(3))) +
+  scale_fill_manual(values = c(colorRampPalette(c('steelblue', '#E7EFF5'))(3), colorRampPalette(c('#FFE4E1', 'firebrick2'))(8))) +
+  guides(fill = guide_legend(reverse = TRUE)) +
   labs(x = 'HYCOM temperature (°C)', y = 'Depth (m)', fill = 'Partial effect') +
   facet_grid(factor(type, levels = c('Water Column', 'Bottom'))~region) +
   geom_contour(breaks = c(0), color = 'black', size = 1) +

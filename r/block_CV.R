@@ -9,7 +9,7 @@ bot4use <- readRDS("data/bot4use.rds")
 b_stn <- bot4use |> 
   dplyr::distinct(stn_id, longitude, latitude, mod_reg)
 
-# load water column data (remove 1994 and 1997 which have very few data points)
+# load water column data (removed 1994 and 1997 which have very few data points)
 wc4use <- readRDS("data/dat4use.rds") 
 wc_stn <- wc4use |> 
   dplyr::distinct(stn_id, longitude, latitude, mod_reg)

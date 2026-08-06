@@ -14,7 +14,7 @@ library(purrr)
 library(rnaturalearth)
 library(cowplot)
 
-source("R/functions.r")
+source("r/functions/geolocate_functions.r")
 
 # for maps later
 world <- ne_countries(scale='medium', returnclass = 'sf')
@@ -117,7 +117,7 @@ top_maps <- plot_grid(big_map, bs_maps, nrow = 1, rel_widths = c(0.3, 0.7), labe
 
 plot_grid(top_maps, ai_maps, ncol = 1, labels = c('', 'C'))
 
-ggsave(file = "results/plots/fig9_cod_maps.png", bg = "white", height = 8, width = 14, dpi = 300)
+ggsave(file = "results/plots/fig10_cod_maps.png", bg = "white", height = 8, width = 14, dpi = 300)
 
 # Alternate alignment if needed
 # sm_maps <- plot_grid(bs_maps, ai_maps, ncol = 1, labels = c('B', 'C'), align = 'v')
@@ -202,7 +202,7 @@ ai_lon_plt <- ai_lon_plot + theme(legend.justification.inside = c(.93, .93))
 
 plot_grid(bs_lon_plt, ai_lon_plt, nrow = 1, align = 'hv')
 
-ggsave("results/plots/Fig10_cod_lon.png", height = 4, width = 10, units = 'in', dpi = 300)
+ggsave("results/plots/Fig11_cod_lon.png", height = 4, width = 10, units = 'in', dpi = 300)
 
 bs_overlap <- bs_daily_p |>
   group_by(date, cell_id, mod) |> 
@@ -321,4 +321,4 @@ over_plots <- plot_grid(bs_over_plot + theme(legend.position="none"), NULL,
 
 plot_grid(over_plots, legend, ncol = 1, rel_heights = c(1, 0.1))
 
-ggsave("results/plots/fig11_cod_overlap.png", height = 6, width = 10, units = 'in', dpi = 300, bg = "white")
+ggsave("results/plots/fig12_cod_overlap.png", height = 6, width = 10, units = 'in', dpi = 300, bg = "white")
