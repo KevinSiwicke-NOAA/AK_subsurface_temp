@@ -281,6 +281,7 @@ s <- ggplot() +
   scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
   geom_sf(data = map_layers$bathymetry) +
   geom_sf(data = map_layers$akland) +
+  geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
   labs(fill = "Temperature", col = '') +
   facet_grid(source~year) +
   geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -306,6 +307,7 @@ h <- ggplot() +
   scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
   geom_sf(data = map_layers$bathymetry) +
   geom_sf(data = map_layers$akland) +
+  geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
   labs(fill = "Temperature", col = '') +
   facet_grid(source~year(date)) +
   geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -331,6 +333,7 @@ g <- ggplot() +
   scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
   geom_sf(data = map_layers$bathymetry) +
   geom_sf(data = map_layers$akland) +
+  geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
   labs(fill = "Temperature", col = '') +
   facet_grid(source~year(date)) +
   geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -386,8 +389,8 @@ for(y in c(1995:2023)) {
   }
   
   if(y == 2020) {
-    dat$Survey_temp = NA
-    dat$Survey_temp[1:10] = 1 # this is to allow 2020 to have a map even though there was no survey
+    dat$Survey_temp[!is.na(dat$Survey_temp)] <-  NA
+    dat$Survey_temp[1:10] = -2 # this is to allow 2020 to have a map even though there was no survey
   }
   
   dat_sf <- st_as_sf(as.polygons(dat, trunc=FALSE, dissolve=FALSE))
@@ -395,16 +398,22 @@ for(y in c(1995:2023)) {
 }
 
 for(i in 0:4) {
+  
+  # Again to plot 2020 with no data from the survey
+  plot_sf <- gap_sf |> 
+    filter(year %in% c((1994+6*i):(1999+6*i))) |> 
+    mutate(year_f = factor(year, levels = c((1994+6*i):(1999+6*i))))
+  
   s <- ggplot() +
     geom_sf(data = map_layers$bathymetry) +
-    geom_sf(data = gap_sf |> filter(year %in% c((1994+6*i):(1999+6*i))),
-            aes(fill = Survey_temp, col = Survey_temp)) +
+    geom_sf(data = plot_sf |> filter(Survey_temp > -1.7999), aes(fill = Survey_temp, col = Survey_temp)) +
     scale_fill_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
     scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
     geom_sf(data = map_layers$bathymetry) +
     geom_sf(data = map_layers$akland) +
+    geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
     labs(fill = "Temperature", col = '') +
-    facet_grid(source~year) +
+    facet_grid(source~year_f, drop = FALSE) +
     geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
     coord_sf(xlim = map_layers$plot.boundary$x,
              ylim = map_layers$plot.boundary$y) +
@@ -428,6 +437,7 @@ for(i in 0:4) {
     scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
     geom_sf(data = map_layers$bathymetry) +
     geom_sf(data = map_layers$akland) +
+    geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
     labs(fill = "Temperature", col = '') +
     facet_grid(source~year(date)) +
     geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
@@ -453,6 +463,7 @@ for(i in 0:4) {
     scale_color_viridis_b(breaks = seq(-1, 8, 1), name = expression('BT'~(degree*C)), option = "H") +
     geom_sf(data = map_layers$bathymetry) +
     geom_sf(data = map_layers$akland) +
+    geom_sf(data = map_layers$survey.area |> filter(SURVEY_DEFINITION_ID == 143), fill = 'grey', alpha = 0.8) +
     labs(fill = "Temperature", col = '') +
     facet_grid(source~year(date)) +
     geom_sf(data = map_layers$graticule, color = "grey70", alpha = 0.5) +
